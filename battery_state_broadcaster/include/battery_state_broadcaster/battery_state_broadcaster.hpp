@@ -47,6 +47,8 @@ namespace battery_state_broadcaster
  *    <state_joint>/battery_power_supply_status
  *    <state_joint>/battery_power_supply_health
  *    <state_joint>/battery_present
+ *    <state_joint>/battery_cell_voltage_<i>
+ *    <state_joint>/battery_cell_temperature_<i>
  *
  * \param state_joints of the batteries to publish.
  * \param capacity of the batteries to publish.
@@ -54,6 +56,8 @@ namespace battery_state_broadcaster
  * \param power_supply_technology of the batteries to publish.
  * \param location of the batteries to publish.
  * \param serial_number of the batteries to publish.
+ * \\param cell_count number of cells per battery pack used to request indexed per-cell
+ * interfaces.
  *
  * Publishes to:
  *

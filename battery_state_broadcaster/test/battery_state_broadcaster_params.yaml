@@ -12,6 +12,8 @@ test_battery_state_broadcaster:
         battery_power_supply_status: true
         battery_power_supply_health: true
         battery_present: false
+        battery_cell_voltage: false
+        battery_cell_temperature: false
       right_wheel:
         battery_temperature: true
         battery_current: true
@@ -20,6 +22,8 @@ test_battery_state_broadcaster:
         battery_power_supply_status: true
         battery_power_supply_health: true
         battery_present: false
+        battery_cell_voltage: true
+        battery_cell_temperature: true
     left_wheel:
       minimum_voltage: 0.0
       maximum_voltage: 10.0
@@ -28,6 +32,7 @@ test_battery_state_broadcaster:
       power_supply_technology: 3
       location: "left_slot"
       serial_number: "left_serial_device"
+      cell_count: 0
     right_wheel:
       minimum_voltage: 0.0
       maximum_voltage: 15.0
@@ -36,3 +41,4 @@ test_battery_state_broadcaster:
       power_supply_technology: 3
       location: "right_slot"
       serial_number: "right_serial_device"
+      cell_count: 2

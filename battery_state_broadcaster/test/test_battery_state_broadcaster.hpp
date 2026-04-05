@@ -63,6 +63,7 @@ class FriendBatteryStateBroadcaster : public battery_state_broadcaster::BatteryS
   FRIEND_TEST(BatteryStateBroadcasterTest, publish_status_success);
   FRIEND_TEST(BatteryStateBroadcasterTest, update_broadcasted_success);
   FRIEND_TEST(BatteryStateBroadcasterTest, publish_nan_voltage);
+  FRIEND_TEST(BatteryStateBroadcasterTest, missing_cell_interfaces_activate_fail);
 };
 
 class BatteryStateBroadcasterTest : public ::testing::Test
@@ -79,7 +80,8 @@ public:
   void TearDown() { battery_state_broadcaster_.reset(nullptr); }
 
   void SetUpBatteryStateBroadcaster(
-    const std::string controller_name = "test_battery_state_broadcaster")
+    const std::string controller_name = "test_battery_state_broadcaster",
+    const bool include_cell_interfaces = true)
   {
     controller_interface::ControllerInterfaceParams params;
     params.controller_name = controller_name;
@@ -104,6 +106,13 @@ public:
     state_ifs.emplace_back(right_percentage_itf_);
     state_ifs.emplace_back(right_status_itf_);
     state_ifs.emplace_back(right_health_itf_);
+    if (include_cell_interfaces)
+    {
+      state_ifs.emplace_back(right_cell_voltage_0_itf_);
+      state_ifs.emplace_back(right_cell_voltage_1_itf_);
+      state_ifs.emplace_back(right_cell_temperature_0_itf_);
+      state_ifs.emplace_back(right_cell_temperature_1_itf_);
+    }
 
     battery_state_broadcaster_->assign_interfaces({}, std::move(state_ifs));
   }
@@ -111,7 +120,7 @@ public:
 protected:
   // Controller-related parameters
   std::vector<std::string> state_joint_names_ = {"left_wheel", "right_wheel"};
-  std::array<double, 12> itfs_values_ = {{
+  std::array<double, 16> itfs_values_ = {{
     5.0,     // 0 left_voltage
     60.0,    // 1 left_temperature
     6000.0,  // 2 left_charge
@@ -123,7 +132,11 @@ protected:
     5000.0,  // 8 right_charge
     66.0,    // 9 right_percentage
     2.0,     // 10 right_status
-    4.0      // 11 right_health
+    4.0,     // 11 right_health
+    3.65,    // 12 right_cell_voltage_0
+    3.70,    // 13 right_cell_voltage_1
+    30.0,    // 14 right_cell_temperature_0
+    31.0     // 15 right_cell_temperature_1
   }};
 
   hardware_interface::StateInterface::SharedPtr left_voltage_itf_ =
@@ -162,6 +175,18 @@ protected:
   hardware_interface::StateInterface::SharedPtr right_health_itf_ =
     std::make_shared<hardware_interface::StateInterface>(
       "right_wheel", "battery_power_supply_health", &itfs_values_[11]);
+  hardware_interface::StateInterface::SharedPtr right_cell_voltage_0_itf_ =
+    std::make_shared<hardware_interface::StateInterface>(
+      "right_wheel", "battery_cell_voltage_0", &itfs_values_[12]);
+  hardware_interface::StateInterface::SharedPtr right_cell_voltage_1_itf_ =
+    std::make_shared<hardware_interface::StateInterface>(
+      "right_wheel", "battery_cell_voltage_1", &itfs_values_[13]);
+  hardware_interface::StateInterface::SharedPtr right_cell_temperature_0_itf_ =
+    std::make_shared<hardware_interface::StateInterface>(
+      "right_wheel", "battery_cell_temperature_0", &itfs_values_[14]);
+  hardware_interface::StateInterface::SharedPtr right_cell_temperature_1_itf_ =
+    std::make_shared<hardware_interface::StateInterface>(
+      "right_wheel", "battery_cell_temperature_1", &itfs_values_[15]);
 
   // Test related parameters
   std::unique_ptr<FriendBatteryStateBroadcaster> battery_state_broadcaster_;

@@ -45,6 +45,16 @@ battery_state_broadcaster:
         default_value: false,
         description: "Whether to read battery presence status (true if battery is present) from this joint's state interface. If unmeasured, the presence will be set to true if any other state interfaces from this joint are available."
       }
+      battery_cell_voltage: {
+        type: bool,
+        default_value: false,
+        description: "Whether to read per-cell voltage values [V] from this joint's battery_cell_voltage_<i> state interfaces. If enabled, cell_count must be > 0."
+      }
+      battery_cell_temperature: {
+        type: bool,
+        default_value: false,
+        description: "Whether to read per-cell temperature values [°C] from this joint's battery_cell_temperature_<i> state interfaces. If enabled, cell_count must be > 0."
+      }
   __map_state_joints:
     minimum_voltage: {
       type: double,
@@ -90,6 +100,15 @@ battery_state_broadcaster:
       default_value: "",
       description: "Serial number of the battery.",
       read_only: true,
+    }
+    cell_count: {
+      type: int,
+      default_value: 0,
+      description: "Number of cells in the battery pack. If > 0 and battery_cell_voltage or battery_cell_temperature is enabled, the broadcaster will request battery_cell_voltage_<i> and/or battery_cell_temperature_<i> interfaces (0-indexed).",
+      read_only: true,
+      validation: {
+        bounds<>: [0, 100]
+      }
     }
   sensor_name: {
     type: string,

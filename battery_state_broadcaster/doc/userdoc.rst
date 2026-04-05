@@ -21,6 +21,11 @@ The broadcaster can read the following state interfaces from each configured joi
 - ``battery_power_supply_status`` *(optional)* (double)
 - ``battery_power_supply_health`` *(optional)* (double)
 - ``battery_present`` *(optional)* (bool)
+- ``battery_cell_voltage_<i>`` *(optional)* (double, 0-indexed)
+- ``battery_cell_temperature_<i>`` *(optional)* (double, 0-indexed)
+
+Per-cell interfaces are configured per joint using ``cell_count`` together with interface flags
+``battery_cell_voltage`` and ``battery_cell_temperature``.
 
 Published Topics
 ^^^^^^^^^^^^^^^^^^
@@ -60,9 +65,9 @@ The broadcaster publishes two topics:
 +-----------------------------+----------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------+
 | ``present``                 | True                                                                 | From joint's ``battery_present`` interface if enabled, otherwise true if joint's voltage values is valid.                                   |
 +-----------------------------+----------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------+
-| ``cell_voltage``            | Empty                                                                | Empty                                                                                                                                       |
+| ``cell_voltage``            | Empty                                                                | From joint's ``battery_cell_voltage_<i>`` interfaces when enabled, otherwise empty.                                                        |
 +-----------------------------+----------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------+
-| ``cell_temperature``        | Empty                                                                | Empty                                                                                                                                       |
+| ``cell_temperature``        | Empty                                                                | From joint's ``battery_cell_temperature_<i>`` interfaces when enabled, otherwise empty.                                                    |
 +-----------------------------+----------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------+
 | ``location``                | All joint locations appended                                         | From joint's ``location`` parameter if provided, otherwise empty.                                                                           |
 +-----------------------------+----------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------+

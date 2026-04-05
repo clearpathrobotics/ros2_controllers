@@ -105,9 +105,14 @@ controller_interface::CallbackReturn BatteryStateBroadcaster::on_configure(
   raw_battery_states_msg.battery_states.reserve(params_.state_joints.size());
   for (size_t i = 0; i < params_.state_joints.size(); ++i)
   {
+
+
     sensor_msgs::msg::BatteryState battery;
     battery.location.reserve(MAX_LENGTH);
     battery.serial_number.reserve(MAX_LENGTH);
+
+
+
     raw_battery_states_msg.battery_states.emplace_back(std::move(battery));
   }
 
@@ -174,10 +179,33 @@ BatteryStateBroadcaster::state_interface_configuration() const
     return state_interfaces_config;
   }
 
-  state_interfaces_config.names.reserve(params_.state_joints.size() * 8);
+  size_t total_interface_count = 0;
   for (const auto & joint : params_.state_joints)
   {
     const auto & interfaces = params_.interfaces.state_joints_map.at(joint);
+    const auto & battery_properties = params_.state_joints_map.at(joint);
+
+    total_interface_count += 1;  // battery_voltage
+    total_interface_count += interfaces.battery_temperature ? 1 : 0;
+    total_interface_count += interfaces.battery_current ? 1 : 0;
+    total_interface_count += interfaces.battery_charge ? 1 : 0;
+    total_interface_count += interfaces.battery_percentage ? 1 : 0;
+    total_interface_count += interfaces.battery_power_supply_status ? 1 : 0;
+    total_interface_count += interfaces.battery_power_supply_health ? 1 : 0;
+    total_interface_count += interfaces.battery_present ? 1 : 0;
+    total_interface_count +=
+      interfaces.battery_cell_voltage ? static_cast<size_t>(battery_properties.cell_count) : 0;
+    total_interface_count += interfaces.battery_cell_temperature ?
+                               static_cast<size_t>(battery_properties.cell_count) :
+                               0;
+  }
+
+  state_interfaces_config.names.reserve(total_interface_count);
+  for (const auto & joint : params_.state_joints)
+  {
+    const auto & interfaces = params_.interfaces.state_joints_map.at(joint);
+    const auto & battery_properties = params_.state_joints_map.at(joint);
+
     state_interfaces_config.names.push_back(joint + "/battery_voltage");
     if (interfaces.battery_temperature)
     {
@@ -207,6 +235,22 @@ BatteryStateBroadcaster::state_interface_configuration() const
     {
       state_interfaces_config.names.push_back(joint + "/battery_present");
     }
+    if (interfaces.battery_cell_voltage)
+    {
+      for (int64_t cell_index = 0; cell_index < battery_properties.cell_count; ++cell_index)
+      {
+        state_interfaces_config.names.push_back(
+          joint + "/battery_cell_voltage_" + std::to_string(cell_index));
+      }
+    }
+    if (interfaces.battery_cell_temperature)
+    {
+      for (int64_t cell_index = 0; cell_index < battery_properties.cell_count; ++cell_index)
+      {
+        state_interfaces_config.names.push_back(
+          joint + "/battery_cell_temperature_" + std::to_string(cell_index));
+      }
+    }
   }
 
   return state_interfaces_config;
@@ -224,6 +268,16 @@ controller_interface::CallbackReturn BatteryStateBroadcaster::on_activate(
   // get parameters from the listener in case they were updated
   param_listener_->refresh_dynamic_parameters();
   params_ = param_listener_->get_params();
+
+  const auto expected_state_interfaces = state_interface_configuration();
+  if (state_interfaces_.size() != expected_state_interfaces.names.size())
+  {
+    RCLCPP_ERROR(
+      get_node()->get_logger(),
+      "State interface count mismatch. Assigned: %zu, expected: %zu.", state_interfaces_.size(),
+      expected_state_interfaces.names.size());
+    return controller_interface::CallbackReturn::FAILURE;
+  }
 
   uint8_t combined_power_supply_technology;
   if (!params_.sensor_name.empty())
@@ -243,6 +297,7 @@ controller_interface::CallbackReturn BatteryStateBroadcaster::on_activate(
   for (size_t i = 0; i < params_.state_joints.size(); ++i)
   {
     auto & battery_state = raw_battery_states_msg.battery_states[i];
+    const auto & interfaces = params_.interfaces.state_joints_map.at(params_.state_joints.at(i));
     const auto & battery_properties = params_.state_joints_map.at(params_.state_joints.at(i));
 
     battery_state.header.frame_id = params_.state_joints[i];
@@ -258,8 +313,24 @@ controller_interface::CallbackReturn BatteryStateBroadcaster::on_activate(
     battery_state.power_supply_technology =
       static_cast<uint8_t>(battery_properties.power_supply_technology);
     battery_state.present = true;
-    battery_state.cell_voltage = {};
-    battery_state.cell_temperature = {};
+    if (interfaces.battery_cell_voltage)
+    {
+      battery_state.cell_voltage.assign(
+        static_cast<size_t>(battery_properties.cell_count), static_cast<float>(kUninitializedValue));
+    }
+    else
+    {
+      battery_state.cell_voltage.clear();
+    }
+    if (interfaces.battery_cell_temperature)
+    {
+      battery_state.cell_temperature.assign(
+        static_cast<size_t>(battery_properties.cell_count), static_cast<float>(kUninitializedValue));
+    }
+    else
+    {
+      battery_state.cell_temperature.clear();
+    }
     battery_state.location = battery_properties.location;
     battery_state.serial_number = battery_properties.serial_number;
 
@@ -318,6 +389,7 @@ controller_interface::return_type BatteryStateBroadcaster::update(
     for (size_t i = 0; i < params_.state_joints.size(); ++i)
     {
       const auto & interfaces = params_.interfaces.state_joints_map.at(params_.state_joints.at(i));
+      const auto & battery_properties = params_.state_joints_map.at(params_.state_joints.at(i));
 
       raw_battery_states_msg.battery_states[i].header.stamp = time;
 
@@ -356,8 +428,8 @@ controller_interface::return_type BatteryStateBroadcaster::update(
       }
       else
       {
-        auto min_volt = params_.state_joints_map.at(params_.state_joints.at(i)).minimum_voltage;
-        auto max_volt = params_.state_joints_map.at(params_.state_joints.at(i)).maximum_voltage;
+        auto min_volt = battery_properties.minimum_voltage;
+        auto max_volt = battery_properties.maximum_voltage;
         float voltage = raw_battery_states_msg.battery_states[i].voltage;
 
         raw_battery_states_msg.battery_states[i].percentage =
@@ -409,6 +481,28 @@ controller_interface::return_type BatteryStateBroadcaster::update(
         else
         {
           raw_battery_states_msg.battery_states[i].present = false;
+        }
+      }
+
+      if (interfaces.battery_cell_voltage)
+      {
+        for (int64_t cell_index = 0; cell_index < battery_properties.cell_count; ++cell_index)
+        {
+          raw_battery_states_msg.battery_states[i].cell_voltage[static_cast<size_t>(cell_index)] =
+            static_cast<float>(
+              state_interfaces_[interface_cnt].get_optional<double>().value_or(kUninitializedValue));
+          interface_cnt++;
+        }
+      }
+
+      if (interfaces.battery_cell_temperature)
+      {
+        for (int64_t cell_index = 0; cell_index < battery_properties.cell_count; ++cell_index)
+        {
+          raw_battery_states_msg.battery_states[i].cell_temperature
+            [static_cast<size_t>(cell_index)] = static_cast<float>(
+            state_interfaces_[interface_cnt].get_optional<double>().value_or(kUninitializedValue));
+          interface_cnt++;
         }
       }
     }
