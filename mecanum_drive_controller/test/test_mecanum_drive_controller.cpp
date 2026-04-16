@@ -927,8 +927,7 @@ TEST_F(MecanumDriveControllerTest, test_speed_limiter_linear_x)
       controller_->reference_interfaces_[1] = 0.0;
       controller_->reference_interfaces_[2] = 0.0;
       ASSERT_EQ(
-        controller_->update(
-          rclcpp::Time(0, 0, RCL_ROS_TIME), rclcpp::Duration::from_seconds(dt)),
+        controller_->update(rclcpp::Time(0, 0, RCL_ROS_TIME), rclcpp::Duration::from_seconds(dt)),
         controller_interface::return_type::OK);
       EXPECT_GT(linear / wheels_radius, joint_command_values_[0])
         << "at t: " << i * dt
@@ -951,8 +950,7 @@ TEST_F(MecanumDriveControllerTest, test_speed_limiter_linear_x)
       controller_->reference_interfaces_[1] = 0.0;
       controller_->reference_interfaces_[2] = 0.0;
       ASSERT_EQ(
-        controller_->update(
-          rclcpp::Time(0, 0, RCL_ROS_TIME), rclcpp::Duration::from_seconds(0.01)),
+        controller_->update(rclcpp::Time(0, 0, RCL_ROS_TIME), rclcpp::Duration::from_seconds(0.01)),
         controller_interface::return_type::OK);
       EXPECT_NEAR(linear / wheels_radius, joint_command_values_[0], 1e-3);
     }
@@ -970,8 +968,7 @@ TEST_F(MecanumDriveControllerTest, test_speed_limiter_linear_x)
       controller_->reference_interfaces_[1] = 0.0;
       controller_->reference_interfaces_[2] = 0.0;
       ASSERT_EQ(
-        controller_->update(
-          rclcpp::Time(0, 0, RCL_ROS_TIME), rclcpp::Duration::from_seconds(dt)),
+        controller_->update(rclcpp::Time(0, 0, RCL_ROS_TIME), rclcpp::Duration::from_seconds(dt)),
         controller_interface::return_type::OK);
       EXPECT_LT(linear / wheels_radius, joint_command_values_[0])
         << "at t: " << i * dt
@@ -992,8 +989,7 @@ TEST_F(MecanumDriveControllerTest, test_speed_limiter_linear_x)
       controller_->reference_interfaces_[1] = 0.0;
       controller_->reference_interfaces_[2] = 0.0;
       ASSERT_EQ(
-        controller_->update(
-          rclcpp::Time(0, 0, RCL_ROS_TIME), rclcpp::Duration::from_seconds(0.01)),
+        controller_->update(rclcpp::Time(0, 0, RCL_ROS_TIME), rclcpp::Duration::from_seconds(0.01)),
         controller_interface::return_type::OK);
       EXPECT_NEAR(linear / wheels_radius, joint_command_values_[0], 1e-3);
     }
@@ -1011,8 +1007,7 @@ TEST_F(MecanumDriveControllerTest, test_speed_limiter_linear_x)
       controller_->reference_interfaces_[1] = 0.0;
       controller_->reference_interfaces_[2] = 0.0;
       ASSERT_EQ(
-        controller_->update(
-          rclcpp::Time(0, 0, RCL_ROS_TIME), rclcpp::Duration::from_seconds(dt)),
+        controller_->update(rclcpp::Time(0, 0, RCL_ROS_TIME), rclcpp::Duration::from_seconds(dt)),
         controller_interface::return_type::OK);
       EXPECT_LT(linear / wheels_radius, joint_command_values_[0])
         << "at t: " << i * dt
@@ -1033,8 +1028,7 @@ TEST_F(MecanumDriveControllerTest, test_speed_limiter_linear_x)
       controller_->reference_interfaces_[1] = 0.0;
       controller_->reference_interfaces_[2] = 0.0;
       ASSERT_EQ(
-        controller_->update(
-          rclcpp::Time(0, 0, RCL_ROS_TIME), rclcpp::Duration::from_seconds(0.01)),
+        controller_->update(rclcpp::Time(0, 0, RCL_ROS_TIME), rclcpp::Duration::from_seconds(0.01)),
         controller_interface::return_type::OK);
       EXPECT_NEAR(linear / wheels_radius, joint_command_values_[0], 1e-3);
     }
@@ -1052,8 +1046,7 @@ TEST_F(MecanumDriveControllerTest, test_speed_limiter_linear_x)
       controller_->reference_interfaces_[1] = 0.0;
       controller_->reference_interfaces_[2] = 0.0;
       ASSERT_EQ(
-        controller_->update(
-          rclcpp::Time(0, 0, RCL_ROS_TIME), rclcpp::Duration::from_seconds(dt)),
+        controller_->update(rclcpp::Time(0, 0, RCL_ROS_TIME), rclcpp::Duration::from_seconds(dt)),
         controller_interface::return_type::OK);
       EXPECT_GT(linear / wheels_radius, joint_command_values_[0])
         << "at t: " << i * dt
@@ -1074,8 +1067,7 @@ TEST_F(MecanumDriveControllerTest, test_speed_limiter_linear_x)
       controller_->reference_interfaces_[1] = 0.0;
       controller_->reference_interfaces_[2] = 0.0;
       ASSERT_EQ(
-        controller_->update(
-          rclcpp::Time(0, 0, RCL_ROS_TIME), rclcpp::Duration::from_seconds(0.01)),
+        controller_->update(rclcpp::Time(0, 0, RCL_ROS_TIME), rclcpp::Duration::from_seconds(0.01)),
         controller_interface::return_type::OK);
       EXPECT_NEAR(linear / wheels_radius, joint_command_values_[0], 1e-3);
     }
