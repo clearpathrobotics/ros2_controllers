@@ -224,8 +224,6 @@ controller_interface::CallbackReturn MecanumDriveController::on_configure(
   controller_state_msg_.header.stamp = get_node()->now();
   controller_state_msg_.header.frame_id = odom_frame_id;
 
-  RCLCPP_INFO(get_node()->get_logger(), "MecanumDriveController configured successfully");
-
   // Configure speed limiters
   try
   {
@@ -274,6 +272,8 @@ controller_interface::CallbackReturn MecanumDriveController::on_configure(
   previous_two_commands_ = std::queue<std::array<double, 3>>();
   previous_two_commands_.push({{0.0, 0.0, 0.0}});
   previous_two_commands_.push({{0.0, 0.0, 0.0}});
+
+  RCLCPP_INFO(get_node()->get_logger(), "MecanumDriveController configured successfully");
 
   return controller_interface::CallbackReturn::SUCCESS;
 }
