@@ -2,6 +2,13 @@
 Changelog for package gps_sensor_broadcaster
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* test: cleanup controller fixture member variables (backport `#2562 <https://github.com/ros-controls/ros2_controllers/issues/2562>`_) (`#2565 <https://github.com/ros-controls/ros2_controllers/issues/2565>`_)
+  Co-authored-by: Akshat Guduru <146907426+akki-g@users.noreply.github.com>
+  Co-authored-by: Bence Magyar <bence.magyar.robotics@gmail.com>
+* Contributors: mergify[bot]
+
 4.42.1 (2026-08-12)
 -------------------
 

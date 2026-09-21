@@ -2,6 +2,63 @@
 Changelog for package mecanum_drive_controller
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Formatting.
+* fix(mecanum_drive_controller): reset rate-limiter history on NaN reference
+  When update_and_write_commands takes the safety (else) branch because
+  the reference is NaN, it zeroed the four wheel command interfaces but left
+  previous_two_commands\_ populated with the last non-zero IK command. On the
+  next tick with a real reference of 0.0 (e.g. operator taps the deadman
+  with the stick centered), the limiter reads last = <stale non-zero> and
+  slews toward 0 under the deceleration bound, producing a spurious wheel
+  burst before decaying to zero (observed on hardware as brief motion when
+  re-enabling the deadman with the stick centered).
+  Reset previous_two_commands\_ to two zero entries in the else branch so
+  limiter->limit() re-enters from rest.
+  Regression test 'when_reference_goes_nan_then_zero_expect_no_wheel_burst_on_reenable'
+  uses the with_limits config (max_acceleration=2.0, max_deceleration=-4.0)
+  to build up ~0.5 m/s of limited command, drops to NaN, then resumes at
+  zero and asserts every wheel is 0. Without this fix the test fails at
+  ~1.12 rad/s on the rear wheels, matching the burst observed on hardware.
+  (cherry picked from commit ef3d2732d038b6ee09b5976752bf0e2b9d4158ab)
+* fix(mecanum_drive_controller): zero all four wheels on NaN reference
+  In chainable mode, the previous update tick resets reference_interfaces\_
+  to NaN, so the next tick takes the else branch of update_and_write_commands
+  and is expected to write 0.0 to every wheel command interface. The old
+  implementation chained the four set_value(0.0) calls with `&&`:
+  const bool value_set_error =
+  command_interfaces\_[FRONT_LEFT].set_value(0.0)  &&
+  command_interfaces\_[FRONT_RIGHT].set_value(0.0) &&
+  command_interfaces\_[REAR_RIGHT].set_value(0.0)  &&
+  command_interfaces\_[REAR_LEFT].set_value(0.0);
+  `&&` short-circuits on the first false, so if set_value on FRONT_LEFT
+  ever returns false (its bounded CAS retry loop exhausts under contention
+  or during a hardware-side stall), the remaining three wheels are never
+  written and retain their last non-zero inverse-kinematics command.
+  On a mecanum robot the operator sees three wheels keep spinning after
+  the commanded twist is cleared.
+  Replace the `&&`-chain with an explicit `&=` accumulator so each wheel
+  is written independently and the log line still fires if any set_value
+  failed. This matches the corresponding upstream fix in
+  mecanum_drive_controller for the jazzy `||`+UINT_MAX variant, which had
+  the same class of defect (short-circuit skipping wheel writes) with
+  different short-circuit semantics.
+  Add a regression test, when_reference_is_nan_in_chained_mode_expect\_
+  all_wheels_zeroed, that:
+  1. Activates the controller in chained mode.
+  2. Tick 1: writes non-zero reference_interfaces\_ and asserts all four
+  wheel command interfaces are non-zero (IK ran).
+  3. Tick 2: relies on update_and_write_commands having reset the
+  references to NaN and asserts every wheel is commanded to 0.0.
+  Before the fix the test fails on tick 2 (three wheels retain their IK
+  values); after the fix it passes.
+  (cherry picked from commit 02f460c56c556e4f186ad75515e48eeed9f75278)
+* test: cleanup controller fixture member variables (backport `#2562 <https://github.com/ros-controls/ros2_controllers/issues/2562>`_) (`#2565 <https://github.com/ros-controls/ros2_controllers/issues/2565>`_)
+  Co-authored-by: Akshat Guduru <146907426+akki-g@users.noreply.github.com>
+  Co-authored-by: Bence Magyar <bence.magyar.robotics@gmail.com>
+* Contributors: Mark Ibrahim, Tony Baltovski, mergify[bot]
+
 4.42.1 (2026-08-12)
 -------------------
 

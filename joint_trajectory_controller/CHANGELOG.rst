@@ -2,6 +2,11 @@
 Changelog for package joint_trajectory_controller
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* [JTC] Add goal_timeout parameter to abort action when total trajectory time exceeds limit (backport `#2360 <https://github.com/ros-controls/ros2_controllers/issues/2360>`_) (`#2583 <https://github.com/ros-controls/ros2_controllers/issues/2583>`_)
+* Contributors: mergify[bot]
+
 4.42.1 (2026-08-12)
 -------------------
 
