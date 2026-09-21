@@ -719,16 +719,16 @@ TEST_F(MecanumDriveControllerTest, when_reference_is_nan_in_chained_mode_expect_
   rclcpp::executors::MultiThreadedExecutor executor;
   executor.add_node(controller_->get_node()->get_node_base_interface());
 
-  ASSERT_EQ(controller_->on_configure(rclcpp_lifecycle::State()), NODE_SUCCESS);
+  ASSERT_TRUE(configure_succeeds(controller_));
   controller_->set_chained_mode(true);
-  ASSERT_EQ(controller_->on_activate(rclcpp_lifecycle::State()), NODE_SUCCESS);
+  ASSERT_TRUE(activate_succeeds(controller_));
   ASSERT_TRUE(controller_->is_in_chained_mode());
 
   // Tick 1: preceding controller writes non-zero references; IK produces
   // non-zero wheel commands on every wheel.
-  controller_->reference_interfaces_[0] = 1.0;
-  controller_->reference_interfaces_[1] = 0.5;
-  controller_->reference_interfaces_[2] = 0.25;
+  ASSERT_TRUE(controller_->ordered_exported_reference_interfaces_[0]->set_value(1.0));
+  ASSERT_TRUE(controller_->ordered_exported_reference_interfaces_[1]->set_value(0.5));
+  ASSERT_TRUE(controller_->ordered_exported_reference_interfaces_[2]->set_value(0.25));
 
   ASSERT_EQ(
     controller_->update(controller_->get_node()->now(), rclcpp::Duration::from_seconds(0.01)),
@@ -740,11 +740,13 @@ TEST_F(MecanumDriveControllerTest, when_reference_is_nan_in_chained_mode_expect_
       << "wheel " << i << " should be non-zero after IK";
   }
 
-  // update_and_write_commands() resets reference_interfaces_ to NaN at the
+  // update_and_write_commands() resets the reference interfaces to NaN at the
   // end of every tick.
-  for (const auto & interface : controller_->reference_interfaces_)
+  for (const auto & interface : controller_->ordered_exported_reference_interfaces_)
   {
-    EXPECT_TRUE(std::isnan(interface));
+    EXPECT_TRUE(
+      std::isnan(
+        interface->get_optional<double>().value_or(std::numeric_limits<double>::quiet_NaN())));
   }
 
   // Tick 2: preceding controller does not write new references, so IK is
@@ -799,9 +801,9 @@ TEST_F(
   // (4.0 m/s^2 * 0.01 s = 0.04 m/s per tick) cannot zero in a single tick.
   for (int i = 0; i < 30; ++i)
   {
-    controller_->ordered_exported_reference_interfaces_[0]->set_value(1.0);
-    controller_->ordered_exported_reference_interfaces_[1]->set_value(0.0);
-    controller_->ordered_exported_reference_interfaces_[2]->set_value(0.0);
+    ASSERT_TRUE(controller_->ordered_exported_reference_interfaces_[0]->set_value(1.0));
+    ASSERT_TRUE(controller_->ordered_exported_reference_interfaces_[1]->set_value(0.0));
+    ASSERT_TRUE(controller_->ordered_exported_reference_interfaces_[2]->set_value(0.0));
     ASSERT_EQ(controller_->update(t0, dt), controller_interface::return_type::OK);
   }
   const double built_up =
@@ -824,9 +826,9 @@ TEST_F(
   // with the stick centered). Without the limiter-history reset in phase 2,
   // `limiter->limit()` would see last = <built_up> and slew toward 0 under
   // the deceleration bound, producing a non-zero wheel command this tick.
-  controller_->ordered_exported_reference_interfaces_[0]->set_value(0.0);
-  controller_->ordered_exported_reference_interfaces_[1]->set_value(0.0);
-  controller_->ordered_exported_reference_interfaces_[2]->set_value(0.0);
+  ASSERT_TRUE(controller_->ordered_exported_reference_interfaces_[0]->set_value(0.0));
+  ASSERT_TRUE(controller_->ordered_exported_reference_interfaces_[1]->set_value(0.0));
+  ASSERT_TRUE(controller_->ordered_exported_reference_interfaces_[2]->set_value(0.0));
   ASSERT_EQ(controller_->update(t0, dt), controller_interface::return_type::OK);
 
   EXPECT_DOUBLE_EQ(
