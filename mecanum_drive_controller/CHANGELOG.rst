@@ -2,8 +2,8 @@
 Changelog for package mecanum_drive_controller
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+4.42.2 (2026-09-21)
+-------------------
 * Formatting.
 * fix(mecanum_drive_controller): reset rate-limiter history on NaN reference
   When update_and_write_commands takes the safety (else) branch because

@@ -2,8 +2,8 @@
 Changelog for package forward_command_controller
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+4.42.2 (2026-09-21)
+-------------------
 * test: cleanup controller fixture member variables (backport `#2562 <https://github.com/ros-controls/ros2_controllers/issues/2562>`_) (`#2565 <https://github.com/ros-controls/ros2_controllers/issues/2565>`_)
   Co-authored-by: Akshat Guduru <146907426+akki-g@users.noreply.github.com>
   Co-authored-by: Bence Magyar <bence.magyar.robotics@gmail.com>
